@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['main.py'],
+    ['main.py', 'ui\\Create.py', 'ui\\MainWindow.py', 'run\\progress.py', 'run\\request.py', 'run\\translator.py', 'run\\threads\\progress_API_access.py', 'run\\threads\\progress_config_exist.py'],
     pathex=[],
     binaries=[],
     datas=[],

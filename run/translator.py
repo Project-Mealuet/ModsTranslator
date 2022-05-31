@@ -6,6 +6,7 @@ from zipfile import ZipFile, is_zipfile
 
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QApplication
 
+from run.lang import loadLang
 from run.request import transJson
 from ui.MainWindow import Ui_MainWindow
 
@@ -21,8 +22,9 @@ class jarTranslation(Ui_MainWindow, QMainWindow):
         self.fileName = None
         self.workDir = None
         self.unzipDir = None
-        self.originWork = 'en_us.json'
-        self.oldWork = 'zh_cn.json'
+        self.workType = ['.json', '.lang']
+        self.originWork = 'en_us'
+        self.oldWork = 'zh_cn'
         self.hasOldWork = False
         self.exportWork = join(getcwd(), 'export.json')
         self.authToken = authBack
@@ -53,18 +55,26 @@ class jarTranslation(Ui_MainWindow, QMainWindow):
         for root, _, files in walk(self.unzipDir):
             for filesIndex in range(len(files)):
                 files[filesIndex] = files[filesIndex].lower()
-            if self.originWork in files:
-                self.originWork = join(root, self.originWork)
-                if not self.isRestarted:
-                    if self.oldWork in files:
-                        self.oldWork = join(root, self.oldWork)
-                        self.hasOldWork = True
-                        self.addStatus('已找到\'zh_cn.json\'文件')
-                        QApplication.processEvents()
-                self.addStatus('已找到\'en_us.json\'文件')
-                QApplication.processEvents()
-                return True
+            for fileType in self.workType:
+                thisOriginWork = self.originWork + fileType
+                thisOldWork = self.oldWork + fileType
+                if thisOriginWork in files:
+                    self.originWork = thisOriginWork
+                    self.workType = fileType
+                    self.addStatus('已找到\'{}\'文件'.format(self.originWork))
+                    QApplication.processEvents()
+                    self.originWork = join(root, self.originWork)
+                    if not self.isRestarted:
+                        if thisOldWork in files:
+                            self.oldWork = thisOldWork
+                            self.addStatus('已找到\'{}\'文件'.format(self.oldWork))
+                            QApplication.processEvents()
+                            self.oldWork = join(root, self.oldWork)
+                            self.hasOldWork = True
+                    return True
         self.addStatus('未找到可翻译文件')
+        QApplication.processEvents()
+        self.ImportJar.setEnabled(True)
         return False
 
     def nextItem(self):
@@ -98,6 +108,12 @@ class jarTranslation(Ui_MainWindow, QMainWindow):
     def setUnchecked(self, number):
         self.Unchecked.setText('还剩 {} 个未校对'.format(number))
 
+    def autoLoad(self, file):
+        if self.workType == '.json':
+            return load(file)
+        else:
+            return loadLang(file)
+
     def onClickNext(self):
         if self.getTag():
             self.receiveChecked([self.getTag(), self.getTranslated()])
@@ -116,7 +132,7 @@ class jarTranslation(Ui_MainWindow, QMainWindow):
         self.Finish.setDisabled(True)
         if self.hasOldWork:
             oldFile = open(self.oldWork, 'r', encoding='UTF-8')
-            oldJson = load(oldFile)
+            oldJson = self.autoLoad(oldFile)
             oldFile.close()
             for key in self.checkedJson:
                 oldJson[key] = self.checkedJson[key]
@@ -151,11 +167,11 @@ class jarTranslation(Ui_MainWindow, QMainWindow):
                 return
             if self.isTranslatable():
                 originFile = open(self.originWork, 'r', encoding='UTF-8')
-                originJson = load(originFile)
+                originJson = self.autoLoad(originFile)
                 originFile.close()
                 if self.hasOldWork:
                     oldFile = open(self.oldWork, 'r', encoding='UTF-8')
-                    oldJson = load(oldFile)
+                    oldJson = self.autoLoad(oldFile)
                     oldFile.close()
                     preparedJson = {}
                     for i in originJson:
@@ -178,7 +194,7 @@ class jarTranslation(Ui_MainWindow, QMainWindow):
                     self.transJson = transJson(self, originJson, self.authToken)
                     dump(self.transJson, exportFile, indent=4)
                     exportFile.close()
-                self.addStatus('共 {} 条需要翻译'.format(self.items))
+                self.addStatus('共 {} 条需要校对'.format(self.items))
                 self.Next.setEnabled(True)
                 self.transList = list(self.transJson.items())
                 self.onClickNext()

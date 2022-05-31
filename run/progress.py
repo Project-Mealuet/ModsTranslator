@@ -23,7 +23,9 @@ class progress(Ui_Dialog, QMainWindow):
     def setConfigStatus(self, status):
         self.progressBar.setValue(1)
         if not status:
-            QMessageBox.critical(self, '错误', 'config文件不存在，已重新创建，请填写后重新打开应用', QMessageBox.StandardButton.Ok)
+            QMessageBox.critical(self, '错误', 'config文件不存在，已重新创建，请填写后重新打开应用',
+                                 QMessageBox.StandardButton.Ok)
+            self.close()
             return
         self.progressBar.setValue(2)
         self.progressLabel.setText('API鉴权中...')

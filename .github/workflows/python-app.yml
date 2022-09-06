@@ -26,8 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests
-        pip install pyqt6
-    - name: Test with main
+        python -m pip install -r requirements.txt
+    - name: Installer
       run: |
-        main
+        pyinstaller -i ui/translation.ico -F ./main.py

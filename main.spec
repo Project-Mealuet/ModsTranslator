@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['main.py', 'ui\\Create.py', 'ui\\MainWindow.py', 'run\\progress.py', 'run\\request.py', 'run\\translator.py', 'run\\threads\\progress_API_access.py', 'run\\threads\\progress_config_exist.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -41,4 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='ui\\translation.ico',
 )

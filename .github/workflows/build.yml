@@ -1,7 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python application
+name: Build
 
 on:
   push:
@@ -9,13 +6,10 @@ on:
   pull_request:
     branches: [ master ]
 
-permissions:
-  contents: read
-
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -27,11 +21,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
-    - name: Installer
+    - name: Build
       run: |
         pyinstaller -i ui/translation.ico -F ./main.py
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.1
       with:
+        path: dist/main.exe
+    - name: Automatic Releases
+      uses: marvinpinto/action-automatic-releases@v1.2.1
+      with:
+    # GitHub secret token
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         files: dist/main.exe
